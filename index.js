@@ -1,12 +1,16 @@
-const rect = require('./rectangle')
+const rect = require('./rectangle');
+const rectangle = require('./rectangle');
 
 function solve(a, b){
     console.log('solving l='+a+' and b='+b+'.');
-    if(a<0 || b<0) console.log('Dimentions must be positive');
-    else {
-        console.log('Area = '+rect.area(a,b));
-        console.log('Perimeter = '+rect.perimeter(a,b))
-    }
+    rect(a, b, (err, rectangle) => {
+        if(err) console.log("ERROR: ", err.message)
+        else{
+            console.log("area: ", rectangle.area())
+            console.log("perimeter: ", rectangle.perimeter())
+        }
+    })
+    console.log("called after callback")
 }
 
 solve(-2, 1);
