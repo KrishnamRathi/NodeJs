@@ -1,11 +1,11 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 
-const dishRouter = express.Router()
+const promotionRouter = express.Router()
 
-dishRouter.use(bodyParser.json())
+promotionRouter.use(bodyParser.json())
 
-dishRouter.route('/')
+promotionRouter.route('/')
 
 .all((req, res, next) => {
     res.statusCode = 200;
@@ -14,11 +14,11 @@ dishRouter.route('/')
 })
 
 .get((req, res, next) => {
-    res.end("Will send all dishes to you.");
+    res.end("Will send all promotions to you.");
 })
 
 .post((req, res, next) => {
-    res.end('Will add the dish: ' + req.body.name + ' with details: ' + req.body.description);
+    res.end('Will add the promotion: ' + req.body.name + ' with details: ' + req.body.description);
 })
 
 .put((req, res, next) => {
@@ -27,10 +27,10 @@ dishRouter.route('/')
 })
 
 .delete((req, res, next) => {
-    res.end("Will delete all dishes")
+    res.end("Will delete all promotions.")
 });
 
-dishRouter.route('/:dishId')
+promotionRouter.route('/:promotionId')
 
 .all((req, res, next) => {
     res.statusCode = 200;
@@ -39,7 +39,7 @@ dishRouter.route('/:dishId')
 })
 
 .get((req, res, next) => {
-    res.end("Will send all details of dish with id: "+ req.params.dishId);
+    res.end("Will send all details of promotion with id: "+ req.params.promotionId);
 })
 
 .post((req, res, next) => {
@@ -48,12 +48,12 @@ dishRouter.route('/:dishId')
 })
 
 .put((req, res, next) => {
-    res.write("Updating the dish: "+ req.params.dishId + "\n");
-    res.end("Will change the dish: "+req.body.name +' with details: '+ req.body.description)
+    res.write("Updating the promotion: "+ req.params.promotionId + '\n');
+    res.end("Will change the promotion: "+req.body.name +' with details: '+ req.body.description)
 })
 
 .delete((req, res, next) => {
-    res.end("Will delete dish with id: "+ req.params.dishId)
+    res.end("Will delete promotion with id: "+ req.params.promotionId)
 });
 
-module.exports = dishRouter;
+module.exports = promotionRouter;
