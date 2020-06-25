@@ -1,11 +1,11 @@
-const express = require('express')
+const express = require('express');
 const bodyParser = require('body-parser')
 
-const dishRouter = express.Router()
+const leaderRouter = express.Router()
 
-dishRouter.use(bodyParser.json())
+leaderRouter.use(bodyParser.json())
 
-dishRouter.route('/')
+leaderRouter.route('/')
 
 .all((req, res, next) => {
     res.statusCode = 200;
@@ -14,11 +14,11 @@ dishRouter.route('/')
 })
 
 .get((req, res, next) => {
-    res.end("Will send all dishes to you.");
+    res.end("Will send all leaders to you.");
 })
 
 .post((req, res, next) => {
-    res.end('Will add the dish: ' + req.body.name + ' with details: ' + req.body.description);
+    res.end('Will add the leader: ' + req.body.name + ' with details: ' + req.body.description);
 })
 
 .put((req, res, next) => {
@@ -27,10 +27,11 @@ dishRouter.route('/')
 })
 
 .delete((req, res, next) => {
-    res.end("Will delete all dishes")
+    res.end("Will delete all leaders")
 });
 
-dishRouter.route('/:dishId')
+
+leaderRouter.route('/:leaderId')
 
 .all( (req, res, next) => {
     res.statusCode = 200;
@@ -39,7 +40,7 @@ dishRouter.route('/:dishId')
 })
 
 .get((req, res, next) => {
-    res.end("Will send all details of dish with id: "+ req.params.dishId);
+    res.end("Will send all details of leader with id: "+ req.params.leaderId);
 })
 
 .post((req, res, next) => {
@@ -48,12 +49,13 @@ dishRouter.route('/:dishId')
 })
 
 .put((req, res, next) => {
-    res.write("Updating the dish: "+ req.params.dishId + '\n');
-    res.end("Will change the dish: "+req.body.name +' with details: '+ req.body.description)
+    res.write("Updating the leader: "+ req.params.leaderId+ '\n');
+    res.end("Will change the leader: "+req.body.name +' with details: '+ req.body.description)
 })
 
 .delete((req, res, next) => {
-    res.end("Will delete dish with id: "+ req.params.dishId)
+    res.end("Will delete leader with id: "+ req.params.leaderId)
 });
 
-module.exports = dishRouter;
+
+module.exports = leaderRouter;
