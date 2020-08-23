@@ -3,6 +3,9 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
+
 const mongoose = require('mongoose');
 
 var indexRouter = require('./routes/index');
@@ -32,11 +35,18 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser('12345-67890-09876-54321'));
+// app.use(cookieParser('12345-67890-09876-54321'));
+app.use(session({
+  name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  resave: false,
+  saveUninitialized: false,
+  store: new FileStore()
+}));
 
 function auth(req, res, next) {
-  console.log(req.signedCookie);
-  if (!req.signedCookie.user ) {
+  console.log(req.session);
+  if (!req.session.user ) {
     var authHeader = req.headers.authorization;
     if (!authHeader) {
       var err = new Error('You are not authenticated');
@@ -44,22 +54,21 @@ function auth(req, res, next) {
       err.status = 401;
       next(err);
       return;
-    } else {
-      var auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-      if (auth[0] == 'admin' && auth[1] == 'password') {
-        res.cookie('user', 'admin', { signed : true});
-        next();
-      }
-      else {
-        var err = new Error('You are not authenticated');
-        res.setHeader('WWW-Authenticate', 'Basic');
-        err.status = 401;
-        next(err);
-        return;
-      }
+    }
+    var auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+    if (auth[0] == 'admin' && auth[1] == 'password') {
+      req.session.user= 'admin';
+      next();
+    }
+    else {
+      var err = new Error('You are not authenticated');
+      res.setHeader('WWW-Authenticate', 'Basic');
+      err.status = 401;
+      next(err);
+      return;
     }
   }else{
-    if(req.signedCookie.user==='admin'){
+    if(req.session.user==='admin'){
       next();
       return;
     }else{
