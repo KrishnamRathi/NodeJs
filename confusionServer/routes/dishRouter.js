@@ -5,6 +5,7 @@ var authenticate = require('../authenticate');
 
 const Dishes = require('../models/Dishes');
 const { populate } = require('../models/Dishes');
+const { verify } = require('jsonwebtoken');
 const dishRouter = express.Router()
 
 dishRouter.use(bodyParser.json())
@@ -23,7 +24,7 @@ dishRouter.route('/')
         .catch((err) => next(err));
 })
 
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.create(req.body)
         .then((dish) => {
             console.log('Dish created', dish);
@@ -39,7 +40,7 @@ dishRouter.route('/')
     res.end("PUT operation is not supported !");
 })
 
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.remove({})
         .then((resp) => {
             res.statusCode = 200;
@@ -64,12 +65,12 @@ dishRouter.route('/:dishId')
 
 })
 
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403
     res.end("POST operation is not supported !");
 })
 
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findByIdAndUpdate(req.params.dishId, {
         $set: req.body
     }, { new: true })
@@ -81,7 +82,7 @@ dishRouter.route('/:dishId')
         .catch((err) => next(err));
 })
 
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findByIdAndRemove(req.params.dishId)
         .then((resp) => {
             res.statusCode = 200;
@@ -144,7 +145,7 @@ dishRouter.route('/:dishId/comments')
     res.end("PUT operation is not supported !");
 })
 
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findById(req.params.dishId)
         .then((dish) => {
             if (dish != null) {
@@ -192,7 +193,7 @@ dishRouter.route('/:dishId/comments/:commentId')
 
 })
 
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403
     res.end("POST operation is not supported !");
 })
@@ -200,7 +201,7 @@ dishRouter.route('/:dishId/comments/:commentId')
 .put(authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then(dish => {
-        if(dish!=null && dish.comments.id(req.params.commentId) != null){
+        if(dish!=null && dish.comments.id(req.params.commentId) != null && req.user._id.toString()===dish.comments.id(req.params.commentId).author._id.toString()){
             if(req.body.rating){
                 dish.comments.id(req.params.commentId).rating = req.body.rating;
             }
@@ -221,6 +222,10 @@ dishRouter.route('/:dishId/comments/:commentId')
             err = new Error('Dish ' + req.params.dishId + ' not found');
             err.status = 404;
             return next(err);
+        }else if(req.user._id.toString()!==dish.comments.id(req.params.commentId).author._id.toString()){
+            err = new Error(req.user.username+" is unauthorized for updating this comment!");
+            err.status = 403;
+            return next(err);
         }
         else {
             err = new Error('Comment ' + req.params.commentId + ' not found');
@@ -234,7 +239,7 @@ dishRouter.route('/:dishId/comments/:commentId')
 .delete(authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
         .then((dish) => {
-            if (dish != null && dish.comments.id(req.params.commentId) != null) {
+            if (dish != null && dish.comments.id(req.params.commentId) != null && req.user._id.toString()===dish.comments.id(req.params.commentId).author._id.toString()) {
                 dish.comments.id(req.params.commentId).remove();
                 dish.save()
                     .then((dish) => {
@@ -251,6 +256,10 @@ dishRouter.route('/:dishId/comments/:commentId')
             else if (dish == null) {
                 err = new Error('Dish ' + req.params.dishId + ' not found');
                 err.status = 404;
+                return next(err);
+            }else if(req.user._id.toString()!==dish.comments.id(req.params.commentId).author._id.toString()){
+                err = new Error(req.user.username+" is unauthorized to delete this comment!");
+                err.status = 403;
                 return next(err);
             }
             else {
